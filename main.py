@@ -4,7 +4,6 @@ import datetime
 datum = datetime.datetime.now().strftime("%m-%Y")
 
 csv = pd.read_csv('overview.csv', delimiter=';')
-needed = csv.filter(items=['customerName','volume','rainbowServiceId'])
 
 result = pd.DataFrame(columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant', 'Alert', 'Connect', 'Dial in per use', 'Room', 'Business-Custom', 'Enterprise-Custom', 'Attendant-Custom', 'Voice-Business-Custom', 'Voice-Enterprise-Custom', 'Voice-Attendant-Custom', 'Alert-Custom', 'Room-Custom'])
 
