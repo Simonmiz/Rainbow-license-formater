@@ -14,76 +14,80 @@ send_mail = bool(send_mail)
 os.makedirs(save_location, exist_ok=True)
 
 datum = datetime.datetime.now().strftime("%m-%Y")
+try:
+    csv = pd.read_csv(f'{input_location}', delimiter=';')
 
-csv = pd.read_csv(f'{input_location}', delimiter=';')
+    result = pd.DataFrame(
+        columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant', 'Alert', 'Connect',
+                 'Dial in per use', 'Room', 'Business-Custom', 'Enterprise-Custom', 'Attendant-Custom',
+                 'Voice-Business-Custom', 'Voice-Enterprise-Custom', 'Voice-Attendant-Custom', 'Alert-Custom',
+                 'Room-Custom'])
 
-result = pd.DataFrame(
-    columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant', 'Alert', 'Connect',
-             'Dial in per use', 'Room', 'Business-Custom', 'Enterprise-Custom', 'Attendant-Custom',
-             'Voice-Business-Custom', 'Voice-Enterprise-Custom', 'Voice-Attendant-Custom', 'Alert-Custom',
-             'Room-Custom'])
+    for i, row in csv.iterrows():
+        customer_name = row['customerName']
+        volume = row['volume']
+        lizenz_typ = 'NA'
 
-for i, row in csv.iterrows():
-    customer_name = row['customerName']
-    volume = row['volume']
-    lizenz_typ = 'NA'
+        if 'Essential' in row['rainbowServiceId']:
+            lizenz_typ = 'Essential'
 
-    if 'Essential' in row['rainbowServiceId']:
-        lizenz_typ = 'Essential'
+        elif 'Business' in row['rainbowServiceId']:
+            lizenz_typ = 'Business'
 
-    elif 'Business' in row['rainbowServiceId']:
-        lizenz_typ = 'Business'
+        elif 'Voice-Enterprise-Custom' in row['rainbowServiceId']:
+            lizenz_typ = 'Voice-Enterprise-Custom'
 
-    elif 'Voice-Enterprise-Custom' in row['rainbowServiceId']:
-        lizenz_typ = 'Voice-Enterprise-Custom'
+        elif 'Enterprise-Custom' in row['rainbowServiceId']:
+            lizenz_typ = 'Enterprise-Custom'
 
-    elif 'Enterprise-Custom' in row['rainbowServiceId']:
-        lizenz_typ = 'Enterprise-Custom'
+        elif 'Enterprise-Dial-in-pack' in row['rainbowServiceId']:
+            lizenz_typ = 'Enterprise-Dial-in-pack'
 
-    elif 'Enterprise-Dial-in-pack' in row['rainbowServiceId']:
-        lizenz_typ = 'Enterprise-Dial-in-pack'
+        elif 'Enterprise' in row['rainbowServiceId']:
+            lizenz_typ = 'Enterprise'
 
-    elif 'Enterprise' in row['rainbowServiceId']:
-        lizenz_typ = 'Enterprise'
+        elif 'Alert-Custom' in row['rainbowServiceId']:
+            lizenz_typ = 'Alert-Custom'
 
-    elif 'Alert-Custom' in row['rainbowServiceId']:
-        lizenz_typ = 'Alert-Custom'
+        elif 'Room-Custom' in row['rainbowServiceId']:
+            lizenz_typ = 'Room-Custom'
 
-    elif 'Room-Custom' in row['rainbowServiceId']:
-        lizenz_typ = 'Room-Custom'
+        elif 'Alert' in row['rainbowServiceId']:
+            lizenz_typ = 'Alert'
 
-    elif 'Alert' in row['rainbowServiceId']:
-        lizenz_typ = 'Alert'
+        elif 'Connect' in row['rainbowServiceId']:
+            lizenz_typ = 'Connect'
 
-    elif 'Connect' in row['rainbowServiceId']:
-        lizenz_typ = 'Connect'
+        elif 'Dial-in-per-use' in row['rainbowServiceId']:
+            lizenz_typ = 'Dial-in-per-use'
 
-    elif 'Dial-in-per-use' in row['rainbowServiceId']:
-        lizenz_typ = 'Dial-in-per-use'
+        elif 'Room' in row['rainbowServiceId']:
+            lizenz_typ = 'Room'
 
-    elif 'Room' in row['rainbowServiceId']:
-        lizenz_typ = 'Room'
+        elif 'Voice-Attendant-Custom' in row['rainbowServiceId']:
+            lizenz_typ = 'Voice-Attendant-Custom'
 
-    elif 'Voice-Attendant-Custom' in row['rainbowServiceId']:
-        lizenz_typ = 'Voice-Attendant-Custom'
+        elif 'Attendant-Custom' in row['rainbowServiceId']:
+            lizenz_typ = 'Attendant-Custom'
 
-    elif 'Attendant-Custom' in row['rainbowServiceId']:
-        lizenz_typ = 'Attendant-Custom'
+        elif 'Attendant' in row['rainbowServiceId']:
+            lizenz_typ = 'Attendant'
 
-    elif 'Attendant' in row['rainbowServiceId']:
-        lizenz_typ = 'Attendant'
+        if customer_name in result["Firma"]:
+            result.loc[result['Firma'] == customer_name, f'{lizenz_typ}'] += volume
+        else:
+            new_row = {'Firma': customer_name}
+            new_row.update({f'{lt}': volume if lt == lizenz_typ else 0 for lt in result.columns[1:]})
+            result = result._append(new_row, ignore_index=True)
+except Exception as Exc1:
+    print(f'Fehler: {Exc1}')
+try:
+    file = f'{save_location}\{filename}_{datum}'
 
-    if customer_name in result["Firma"]:
-        result.loc[result['Firma'] == customer_name, f'{lizenz_typ}'] += volume
-    else:
-        new_row = {'Firma': customer_name}
-        new_row.update({f'{lt}': volume if lt == lizenz_typ else 0 for lt in result.columns[1:]})
-        result = result._append(new_row, ignore_index=True)
-
-file = f'{save_location}\{filename}_{datum}'
-
-result = result.groupby('Firma').sum()
-result.to_csv(f'{file}.csv', sep=';', index=True, encoding='utf-8')
+    result = result.groupby('Firma').sum()
+    result.to_csv(f'{file}.csv', sep=';', index=True, encoding='utf-8')
+except Exception as Exc2:
+    print(f'Fehler: {Exc2}')
 try:
     if send_mail == True:
         import smtplib
@@ -124,5 +128,5 @@ try:
             server.sendmail(sender_email, receiver_email, message.as_string())
             server.quit()
         print("E-Mail wurde erfolgreich versendet.")
-except Exception as Exc1:
-    print(f'Fehler bei SMTP: {Exc1}')
+except Exception as Exc3:
+    print(f'Fehler bei SMTP: {Exc3}')
