@@ -1,0 +1,5 @@
+Here gets the Output file saved.
+Hier wird die ausgabe Datei gespeichert
+
+!! Notiz: Wenn SMTP in der Config aktiv ist, wird die datei hier trotzdem abgelegt, Änderung geplant !!
+!! Note: If you enabled SMTP in the Config the file still gets put here, Changes are planned !!
