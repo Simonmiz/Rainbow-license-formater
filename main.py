@@ -1,11 +1,27 @@
 import pandas as pd
-import datetime
+import datetime,os,tempfile,shutil,time,configparser
+
+config = configparser.ConfigParser()
+config.read('.\config\config.ini')
+
+save_location = config.get("DEFAULT", "save_location")
+input_location = config.get("DEFAULT", "input_location")
+filename = config.get("DEFAULT", "filename")
+send_mail = config.get("SMTP", "send_mail")
+
+send_mail = bool(send_mail)
+
+os.makedirs(save_location, exist_ok=True)
 
 datum = datetime.datetime.now().strftime("%m-%Y")
 
-csv = pd.read_csv('overview.csv', delimiter=';')
+csv = pd.read_csv(f'{input_location}', delimiter=';')
 
-result = pd.DataFrame(columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant', 'Alert', 'Connect', 'Dial in per use', 'Room', 'Business-Custom', 'Enterprise-Custom', 'Attendant-Custom', 'Voice-Business-Custom', 'Voice-Enterprise-Custom', 'Voice-Attendant-Custom', 'Alert-Custom', 'Room-Custom'])
+result = pd.DataFrame(
+    columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant', 'Alert', 'Connect',
+             'Dial in per use', 'Room', 'Business-Custom', 'Enterprise-Custom', 'Attendant-Custom',
+             'Voice-Business-Custom', 'Voice-Enterprise-Custom', 'Voice-Attendant-Custom', 'Alert-Custom',
+             'Room-Custom'])
 
 for i, row in csv.iterrows():
     customer_name = row['customerName']
@@ -58,11 +74,65 @@ for i, row in csv.iterrows():
         lizenz_typ = 'Attendant'
 
     if customer_name in result["Firma"]:
-        result.loc[result['Firma'] == customer_name, f'{lizenz_typ}'] +=volume
+        result.loc[result['Firma'] == customer_name, f'{lizenz_typ}'] += volume
     else:
         new_row = {'Firma': customer_name}
         new_row.update({f'{lt}': volume if lt == lizenz_typ else 0 for lt in result.columns[1:]})
         result = result._append(new_row, ignore_index=True)
 
+file = f'{save_location}\{filename}_{datum}'
+
 result = result.groupby('Firma').sum()
-result.to_csv(f'Lizenzen_{datum}.csv', sep=';', index=True, encoding='utf-8')
+result.to_csv(f'{file}.csv', sep=';', index=True, encoding='utf-8')
+
+if send_mail == True:
+    import smtplib
+    from email.mime.multipart import MIMEMultipart
+    from email.mime.text import MIMEText
+    from email.mime.base import MIMEBase
+    from email import encoders
+
+    smtp_server = config.get("SMTP", "smtp_server")
+    smtp_port = config.get("SMTP", "smtp_port")
+    sender_email = config.get("SMTP", "sender_mail")
+    sender_password = config.get("SMTP", "sender_password")
+    receiver_email = config.get("SMTP", "receiver_mail")
+    subject = config.get("SMTP", "subject")
+    body = config.get("SMTP", "body")
+
+    message = MIMEMultipart()
+    message['From'] = sender_email
+    message['To'] = receiver_email
+    message['Subject'] = subject
+    message.attach(MIMEText(body, 'plain'))
+
+    file_path = f'{file}.csv'
+    attachment = open(file_path, "rb")
+
+    part = MIMEBase('application', 'octet-stream')
+    part.set_payload((attachment).read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition', "attachment; filename= %s" % f'Lizenzen_{datum}.csv')
+
+    message.attach(part)
+
+    smtp_port = int(smtp_port)
+
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, receiver_email, message.as_string())
+        server.quit()
+    print("E-Mail wurde erfolgreich versendet.")
+    time.sleep(10)
+    current_dir = os.getcwd()
+    temp_dir = tempfile.gettempdir()
+    new_file_name = f'{file_path}_{datetime.datetime.now().strftime("%Y%m%d")}.csv'
+    source_file_path = os.path.join(current_dir, file_path)
+    destination_file_path = os.path.join(temp_dir, new_file_name)
+
+    # Rename the file
+    os.rename(source_file_path, destination_file_path)
+
+    # Move the renamed file to the temp folder
+    shutil.move(destination_file_path, temp_dir)
