@@ -1,8 +1,11 @@
+import configparser
+import datetime
+import os
+
 import pandas as pd
-import datetime,os,tempfile,shutil,time,configparser
 
 config = configparser.ConfigParser()
-config.read('.\config\config.ini')
+config.read('config\config.ini')
 
 save_location = config.get("DEFAULT", "save_location")
 input_location = config.get("DEFAULT", "input_location")
@@ -18,10 +21,10 @@ try:
     csv = pd.read_csv(f'{input_location}', delimiter=';')
 
     result = pd.DataFrame(
-        columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant', 'Alert', 'Connect',
-                 'Dial in per use', 'Room', 'Business-Custom', 'Enterprise-Custom', 'Attendant-Custom',
-                 'Voice-Business-Custom', 'Voice-Enterprise-Custom', 'Voice-Attendant-Custom', 'Alert-Custom',
-                 'Room-Custom'])
+        columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant',
+                 'Alert', 'Connect', 'Dial in per use', 'Room', 'Business-Custom', 'Enterprise-Custom',
+                 'Attendant-Custom', 'Voice-Business-Custom', 'Voice-Enterprise-Custom',
+                 'Voice-Attendant-Custom', 'Alert-Custom', 'Room-Custom'])
 
     for i, row in csv.iterrows():
         customer_name = row['customerName']
@@ -89,7 +92,7 @@ try:
 except Exception as Exc2:
     print(f'Fehler: {Exc2}')
 try:
-    if send_mail == True:
+    if send_mail is True:
         import smtplib
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
@@ -114,7 +117,7 @@ try:
         attachment = open(file_path, "rb")
 
         part = MIMEBase('application', 'octet-stream')
-        part.set_payload((attachment).read())
+        part.set_payload(attachment.read())
         encoders.encode_base64(part)
         part.add_header('Content-Disposition', "attachment; filename= %s" % f'Lizenzen_{datum}.csv')
 
@@ -127,6 +130,6 @@ try:
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, receiver_email, message.as_string())
             server.quit()
-        print("E-Mail wurde erfolgreich versendet.")
+        print("E-Mail wurde versendet.")
 except Exception as Exc3:
     print(f'Fehler bei SMTP: {Exc3}')
