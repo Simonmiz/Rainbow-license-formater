@@ -12,8 +12,6 @@ input_location = config.get("DEFAULT", "input_location")
 filename = config.get("DEFAULT", "filename")
 send_mail = config.get("SMTP", "send_mail")
 
-send_mail = bool(send_mail)
-
 os.makedirs(save_location, exist_ok=True)
 
 datum = datetime.datetime.now().strftime("%m-%Y")
@@ -85,14 +83,15 @@ try:
 except Exception as Exc1:
     print(f'Fehler: {Exc1}')
 try:
-    file = f'{save_location}\{filename}_{datum}'
+    file = f'.\{save_location}\{filename}_{datum}'
 
     result = result.groupby('Firma').sum()
     result.to_csv(f'{file}.csv', sep=';', index=True, encoding='utf-8')
 except Exception as Exc2:
     print(f'Fehler: {Exc2}')
+
 try:
-    if send_mail is True:
+    if send_mail == "True":
         import smtplib
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
