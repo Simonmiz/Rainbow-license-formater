@@ -1,4 +1,4 @@
-# rainbowlicenseview
+# Rainbow License Formater
 Alcatel Rainbow Lizenz CSV Datei Übersichtlicher gestalten per Script
 
 Die Lizenz Übersicht die man aus Rainbow sich herunterladen kann bei den Rechnungen(Invoices), einfach in den selben Ordner bewegen wo sich das Script befindet, danach in "overview.csv" umbennen, und dann ausführen, danach erstellt das Script eine Übersichtlichere Version dieser Datei im selben Ordner mit dem Namen "Lizenzen_{Monatszahl}_{Jahreszahl} 
