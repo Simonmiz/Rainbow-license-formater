@@ -18,29 +18,28 @@ datum = ""
 
 file = ""
 result = ""
-voller_dateiname = ""
+ganzer_dateiname = ""
 
 datum_pattern = r"INV_SERV_(\d{4}-\d{2}-\d{2})_(.*?)"
 
-# Durchlaufe alle Dateien im Ordner
+# Pattern matching, für das Datum, sodass ältere übersichten verarbeitet werden können,
+# und man die Datei nichtmehr umbennen muss.
+
 for dateiname in os.listdir(input_location):
     # Vervollständige den vollständigen Pfad zum Dateinamen
-    voller_pfad = os.path.join(input_location, dateiname)
+    ganzer_pfad = os.path.join(input_location, dateiname)
 
-    # Überprüfe, ob es sich bei dem Objekt im Ordner um eine Datei handelt
-    if os.path.isfile(voller_pfad):
+    if os.path.isfile(ganzer_pfad):
         # Suche nach dem Muster im Dateinamen
         match = re.search(datum_pattern, dateiname)
 
         if match:
-            # Extrahiere das Datum und den variablen Teil aus der gefundenen Übereinstimmung
             datum = match.group(1)
-            firma_teil = match.group(2)
 
             # Setze den vollen Dateinamen in eine Variable
-            voller_dateiname = voller_pfad
+            ganzer_dateiname = ganzer_pfad
 try:
-    csv = pd.read_csv(f'{voller_dateiname}', delimiter=';')
+    csv = pd.read_csv(f'{ganzer_dateiname}', delimiter=';')
 
     result = pd.DataFrame(
         columns=['Firma', 'Essential', 'Business', 'Enterprise', 'Enterprise-Dial-in-pack', 'Attendant',
