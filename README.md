@@ -8,9 +8,8 @@ Die Lizenz Übersicht die man aus Rainbow sich herunterladen kann bei den Rechnu
 Step by Step Erklärung:
 
 1.  Übersicht aus Rainbow Herunterladen
-2.  In den Ordner des Scriptes verschieben die Datei
-3.  Datei umbennen in "overview.csv"
-4.  Script ausführen
-5.  Kurz warten
-6.  Neue Datei befindet sich im Ordner mit "Lizenzen" als Namen
-7.  Diese Übersicht ist deutlich lesbarer als die Standardmäßige von Alcatel die man sich normal herunterladen kann.
+2.  In den Ordner "Input" verschieben die Datei
+3.  Script ausführen
+4.  Kurz warten
+5.  Neue Datei befindet sich im Ordner mit "Lizenzen" als Namen, falls in config aktiviert, wird auch mit SMTP versendet.
+6.  Diese Übersicht ist deutlich lesbarer als die Standardmäßige von Alcatel die man sich normal herunterladen kann.
